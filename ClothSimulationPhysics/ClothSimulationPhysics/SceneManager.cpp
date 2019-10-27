@@ -72,7 +72,7 @@ void CSceneManager::InitDemo()
 
 void CSceneManager::UpdateLoop()
 {
-	//cloth->Update(deltaTime);
+	cloth->Update(deltaTime);
 	cloth->ApplyForce(Fan->GetPos(), glm::vec3(0.0f, 0.0f, 10.0f) * CInputManager::GetFanSpeed(), 20.0f);
 	if (CInputManager::KeyArray[27] == KEY_FIRST_PRESS) {
 		CurrentState = START_MENU;
