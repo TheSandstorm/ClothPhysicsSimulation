@@ -5,7 +5,7 @@
 #include "Spring.h"
 Cloth::Cloth()
 {
-	m_v3ObjPos = glm::vec3(0.0f, -10.0f, -10.0f);
+	m_v3ObjPos = glm::vec3(0.0f, 10.0f, -10.0f);
 	m_v3ObjRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	m_usClothWidth = 30;
@@ -34,18 +34,56 @@ void Cloth::Init() {
 	float YSeparation = 1.0f / (static_cast<float>(m_usClothHeight)) * 100.0f;
 	float z = 0.0f;
 	float x = m_v3ObjPos.x - (XSeparation * (m_usClothWidth / 2.0f));
+	float y = m_v3ObjPos.x - (YSeparation * (m_usClothWidth / 2.0f));
 	for (unsigned int i = 0; i < m_usClothHeight; i++) {
 		for (unsigned int j = 0; j < m_usClothWidth; j++) {
 			//Creating a new particle
-			vec3 Pos = vec3(x + (XSeparation * j), (YSeparation * i), z) + m_v3ObjPos;
+			vec3 Pos = vec3(x + (XSeparation * j), y + (YSeparation * i), z) + m_v3ObjPos;
 			auto n = std::make_shared<ClothParticle>(Pos);
 			n->m_iD = (i* m_usClothHeight) + j;
 			n->m_bDrawn = false;
 			m_vecClothParticleVect.push_back(n);
-			if (i == m_usClothHeight - 1 && j % 9 == 1) n->m_bPinned = true;
+			//if (i == m_usClothHeight - 1 && j % 9 == 1) n->m_bPinned = true;
 		}
-		z += 1.0f;
+		//z += 1.0f;
 	}
+	for (int j = 0; j <= m_usClothHeight - 1; j++)
+	{
+		for (int i = 0; i <= m_usClothWidth - 1; i++)
+		{
+			int offset = (m_usClothWidth + 1) * j;
+
+			if ((i % 2 == 0) && (j % 2 == 0) || (i % 2 == 1) && (j % 2 == 1))
+			{
+				//upper
+				m_vecIndices.push_back(i + offset);
+				m_vecIndices.push_back(i + 1 + offset);
+				m_vecIndices.push_back(i + m_usClothWidth + 1 + offset);
+				//numTriangle++;
+
+				//lower
+				m_vecIndices.push_back(i + 1 + offset);
+				m_vecIndices.push_back(i + m_usClothWidth + 1 + offset);
+				m_vecIndices.push_back(i + m_usClothWidth + 2 + offset);
+				//numTriangle++;
+			}
+			else
+			{
+				//upper
+				m_vecIndices.push_back(i + offset);
+				m_vecIndices.push_back(i + 1 + offset);
+				m_vecIndices.push_back(i + m_usClothWidth + 2 + offset);
+				//numTriangle++;
+
+				//lower
+				m_vecIndices.push_back(i + offset);
+				m_vecIndices.push_back(i + m_usClothWidth + 1 + offset);
+				m_vecIndices.push_back(i + m_usClothWidth + 2 + offset);
+				//numTriangle++;
+			}
+		}
+	}
+
 
 	//Generating the buffers
 	glGenVertexArrays(1, &m_VAO);
@@ -303,6 +341,32 @@ void Cloth::UpdateVectors() {
 	for (auto it : m_vecStructuralSprings) {
 		if (it->m_bBroken) {
 			continue;
+		}
+		int offset = (m_usClothWidth + 1) * it->m_pLinkedParticle0->m_iD;
+		if ((it->m_pLinkedParticle0->m_iD % 2 == 0) && (it->m_pLinkedParticle0->m_iD % 2 == 0) || (it->m_pLinkedParticle0->m_iD % 2 == 1) && (it->m_pLinkedParticle0->m_iD % 2 == 1))
+		{
+			m_vecIndices.push_back(it->m_pLinkedParticle0->m_iD + offset);
+			m_vecIndices.push_back(it->m_pLinkedParticle0->m_iD + 1 + offset);
+			m_vecIndices.push_back(it->m_pLinkedParticle0->m_iD + m_usClothWidth + 1 + offset);
+			//numTriangle++;
+
+			//lower
+			m_vecIndices.push_back(it->m_pLinkedParticle0->m_iD + 1 + offset);
+			m_vecIndices.push_back(it->m_pLinkedParticle0->m_iD + m_usClothWidth + 1 + offset);
+			m_vecIndices.push_back(it->m_pLinkedParticle0->m_iD + m_usClothWidth + 2 + offset);
+		}
+		else
+		{
+			//upper
+			m_vecIndices.push_back(it->m_pLinkedParticle0->m_iD + offset);
+			m_vecIndices.push_back(it->m_pLinkedParticle0->m_iD + 1 + offset);
+			m_vecIndices.push_back(it->m_pLinkedParticle0->m_iD + m_usClothWidth + 2 + offset);
+			//numTriangle++;
+
+			//lower
+			m_vecIndices.push_back(it->m_pLinkedParticle0->m_iD + offset);
+			m_vecIndices.push_back(it->m_pLinkedParticle0->m_iD + m_usClothWidth + 1 + offset);
+			m_vecIndices.push_back(it->m_pLinkedParticle0->m_iD + m_usClothWidth + 2 + offset);
 		}
 		m_vecIndices.push_back(it->m_pLinkedParticle0->m_iD);
 		m_vecIndices.push_back(it->m_pLinkedParticle1->m_iD);
